@@ -42,6 +42,11 @@ public class UserController {
         return response;
     }
 
+    /**
+     * 退出登入
+     * @param session
+     * @return
+     */
     @RequestMapping(value = "logout.do",method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> logout(HttpSession session){
