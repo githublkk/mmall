@@ -7,8 +7,8 @@ import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
 import com.mmall.util.CookieUtil;
 import com.mmall.util.JsonUtil;
+import com.mmall.util.RedisPoolUtil;
 import com.mmall.util.RedisShardedPoolUtil;
-import com.sun.corba.se.spi.activation.Server;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -44,7 +44,7 @@ public class UserController {
         ServerResponse<User> response = iUserService.login(username,password);
         if(response.isSuccess()){
             CookieUtil.writeLoginToken(httpServletResponse,session.getId());
-            RedisShardedPoolUtil.setEx(session.getId(), JsonUtil.obj2String(response.getData()),Const.RedisCacheExtime.REDIS_SESSION_EXTIME);
+            RedisPoolUtil.setEx(session.getId(), JsonUtil.obj2String(response.getData()),Const.RedisCacheExtime.REDIS_SESSION_EXTIME);
            // session.setAttribute(Const.CURRENT_USER,response.getData());
         }
         return response;
@@ -61,7 +61,7 @@ public class UserController {
         //session.removeAttribute(Const.CURRENT_USER);
         String loginToken = CookieUtil.readLoginToken(httpServletRequest);
         CookieUtil.delLoginToken(httpServletRequest,httpServletResponse);
-        RedisShardedPoolUtil.del(loginToken);
+        RedisPoolUtil.del(loginToken);
         return ServerResponse.createBySuccess();
     }
     @RequestMapping(value = "register.do",method = RequestMethod.POST)
@@ -93,7 +93,7 @@ public class UserController {
         if(StringUtils.isEmpty(loginToken)){
             return ServerResponse.createByErrorMessage("用户未登录,无法获取当前用户的信息");
         }
-        String userJsonStr = RedisShardedPoolUtil.get(loginToken);
+        String userJsonStr = RedisPoolUtil.get(loginToken);
         User user = JsonUtil.string2Obj(userJsonStr,User.class);
         if(user != null){
             return ServerResponse.createBySuccess(user);
